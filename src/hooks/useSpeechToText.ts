@@ -14,7 +14,7 @@ export const useSpeechToText = (): SpeechToTextHook => {
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     // Vérifier si la reconnaissance vocale est supportée
@@ -31,7 +31,7 @@ export const useSpeechToText = (): SpeechToTextHook => {
     recognition.interimResults = true;
     recognition.lang = 'fr-FR';
 
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
+    recognition.onresult = (event: any) => {
       let finalTranscript = '';
       let interimTranscript = '';
 
@@ -47,7 +47,7 @@ export const useSpeechToText = (): SpeechToTextHook => {
       setTranscript(prev => prev + finalTranscript + interimTranscript);
     };
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event: any) => {
       console.error('Erreur de reconnaissance vocale:', event.error);
       setError(`Erreur: ${event.error}`);
       setIsListening(false);
