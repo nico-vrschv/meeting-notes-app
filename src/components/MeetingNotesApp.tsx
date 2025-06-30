@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Clock, FileText, Download, Mic, Chrome } from 'lucide-react';
+import { Calendar, Users, Clock, FileText, Download, Mic, Chrome, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import SpeechTranscription from './SpeechTranscription';
+import { ElevenLabsTTS } from './ElevenLabsTTS';
 
 interface MeetingNote {
   id: string;
@@ -58,38 +60,45 @@ const MeetingNotesApp = () => {
     }));
   };
 
+  const handleNotesChange = (value: string) => {
+    setCurrentNote(prev => ({
+      ...prev,
+      notes: value
+    }));
+  };
+
   const addParticipant = () => {
     if (participantInput.trim() && !currentNote.participants?.includes(participantInput.trim())) {
-      setCurrentNote({
-        ...currentNote,
-        participants: [...(currentNote.participants || []), participantInput.trim()]
-      });
+      setCurrentNote(prev => ({
+        ...prev,
+        participants: [...(prev.participants || []), participantInput.trim()]
+      }));
       setParticipantInput('');
     }
   };
 
   const removeParticipant = (participant: string) => {
-    setCurrentNote({
-      ...currentNote,
-      participants: currentNote.participants?.filter(p => p !== participant) || []
-    });
+    setCurrentNote(prev => ({
+      ...prev,
+      participants: prev.participants?.filter(p => p !== participant) || []
+    }));
   };
 
   const addActionItem = () => {
     if (actionItemInput.trim()) {
-      setCurrentNote({
-        ...currentNote,
-        actionItems: [...(currentNote.actionItems || []), actionItemInput.trim()]
-      });
+      setCurrentNote(prev => ({
+        ...prev,
+        actionItems: [...(prev.actionItems || []), actionItemInput.trim()]
+      }));
       setActionItemInput('');
     }
   };
 
   const removeActionItem = (index: number) => {
-    setCurrentNote({
-      ...currentNote,
-      actionItems: currentNote.actionItems?.filter((_, i) => i !== index) || []
-    });
+    setCurrentNote(prev => ({
+      ...prev,
+      actionItems: prev.actionItems?.filter((_, i) => i !== index) || []
+    }));
   };
 
   const generateSummary = () => {
@@ -99,10 +108,10 @@ const MeetingNotesApp = () => {
     const sentences = notes.split('.').filter(s => s.trim().length > 10);
     const summary = sentences.slice(0, Math.min(3, sentences.length)).join('. ') + (sentences.length > 0 ? '.' : '');
     
-    setCurrentNote({
-      ...currentNote,
+    setCurrentNote(prev => ({
+      ...prev,
       summary: summary || 'Aucun contenu suffisant pour générer un résumé.'
-    });
+    }));
   };
 
   const exportReport = () => {
@@ -174,7 +183,7 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                     <Input
                       placeholder="Ex: Réunion équipe projet X"
                       value={currentNote.title || ''}
-                      onChange={(e) => setCurrentNote({...currentNote, title: e.target.value})}
+                      onChange={(e) => setCurrentNote(prev => ({...prev, title: e.target.value}))}
                       className="border-slate-300 focus:border-blue-500"
                     />
                   </div>
@@ -185,7 +194,7 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                     <Input
                       type="date"
                       value={currentNote.date || ''}
-                      onChange={(e) => setCurrentNote({...currentNote, date: e.target.value})}
+                      onChange={(e) => setCurrentNote(prev => ({...prev, date: e.target.value}))}
                       className="border-slate-300 focus:border-blue-500"
                     />
                   </div>
@@ -198,7 +207,7 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                   <Input
                     placeholder="Ex: 1h30, 45min"
                     value={currentNote.duration || ''}
-                    onChange={(e) => setCurrentNote({...currentNote, duration: e.target.value})}
+                    onChange={(e) => setCurrentNote(prev => ({...prev, duration: e.target.value}))}
                     className="border-slate-300 focus:border-blue-500"
                   />
                 </div>
@@ -244,13 +253,16 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
                   Notes de Réunion
+                  <div className="ml-auto">
+                    <ElevenLabsTTS text={currentNote.notes || ''} />
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <Textarea
                   placeholder="Saisissez vos notes ici ou utilisez la transcription automatique ci-dessus...&#10;&#10;Conseils :&#10;- Notez les points clés de discussion&#10;- Mentionnez les décisions prises&#10;- Listez les actions à effectuer&#10;- Incluez les échéances importantes"
                   value={currentNote.notes || ''}
-                  onChange={(e) => setCurrentNote({...currentNote, notes: e.target.value})}
+                  onChange={(e) => handleNotesChange(e.target.value)}
                   className="min-h-[300px] border-slate-300 focus:border-green-500 resize-none"
                 />
               </CardContent>
@@ -314,7 +326,12 @@ Généré le ${new Date().toLocaleString('fr-FR')}
             {currentNote.summary && (
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-t-lg">
-                  <CardTitle className="text-lg">Résumé Exécutif</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    Résumé Exécutif
+                    <div className="ml-auto">
+                      <ElevenLabsTTS text={currentNote.summary} />
+                    </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">
                   <p className="text-slate-700 text-sm leading-relaxed">
