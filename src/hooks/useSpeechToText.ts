@@ -23,15 +23,15 @@ export const useSpeechToText = (): SpeechToTextHook => {
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognitionRef.current = new SpeechRecognition();
+    const SpeechRecognitionConstructor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognitionConstructor();
 
     const recognition = recognitionRef.current;
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'fr-FR';
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let finalTranscript = '';
       let interimTranscript = '';
 
@@ -47,7 +47,7 @@ export const useSpeechToText = (): SpeechToTextHook => {
       setTranscript(prev => prev + finalTranscript + interimTranscript);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Erreur de reconnaissance vocale:', event.error);
       setError(`Erreur: ${event.error}`);
       setIsListening(false);
