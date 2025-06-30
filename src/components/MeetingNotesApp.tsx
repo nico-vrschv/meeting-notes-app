@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Users, Clock, FileText, Download, Mic, Chrome } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import SpeechTranscription from './SpeechTranscription';
 
 interface MeetingNote {
   id: string;
@@ -33,6 +33,30 @@ const MeetingNotesApp = () => {
   const [participantInput, setParticipantInput] = useState('');
   const [actionItemInput, setActionItemInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+
+  // Vérifier s'il y a une transcription dans l'URL (venant de l'extension)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const transcriptParam = urlParams.get('transcript');
+    if (transcriptParam) {
+      const decodedTranscript = decodeURIComponent(transcriptParam);
+      setCurrentNote(prev => ({
+        ...prev,
+        notes: prev.notes ? prev.notes + '\n\n--- Transcription Google Meet ---\n' + decodedTranscript : decodedTranscript
+      }));
+      
+      // Nettoyer l'URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
+
+  const handleTranscriptUpdate = (transcript: string) => {
+    setCurrentNote(prev => ({
+      ...prev,
+      notes: transcript
+    }));
+  };
 
   const addParticipant = () => {
     if (participantInput.trim() && !currentNote.participants?.includes(participantInput.trim())) {
@@ -211,36 +235,20 @@ Généré le ${new Date().toLocaleString('fr-FR')}
               </CardContent>
             </Card>
 
+            {/* Zone de transcription en temps réel */}
+            <SpeechTranscription onTranscriptUpdate={handleTranscriptUpdate} />
+
             {/* Zone de saisie des notes */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-green-600 to-green-700 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
                   Notes de Réunion
-                  <div className="ml-auto flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant={isRecording ? "destructive" : "secondary"}
-                      onClick={() => setIsRecording(!isRecording)}
-                      className="text-xs"
-                    >
-                      <Mic className="w-4 h-4 mr-1" />
-                      {isRecording ? 'Arrêter' : 'Enregistrer'}
-                    </Button>
-                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                {isRecording && (
-                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <div className="flex items-center gap-2 text-red-700">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                      Enregistrement en cours... (Fonctionnalité en développement)
-                    </div>
-                  </div>
-                )}
                 <Textarea
-                  placeholder="Saisissez vos notes ici...&#10;&#10;Conseils :&#10;- Notez les points clés de discussion&#10;- Mentionnez les décisions prises&#10;- Listez les actions à effectuer&#10;- Incluez les échéances importantes"
+                  placeholder="Saisissez vos notes ici ou utilisez la transcription automatique ci-dessus...&#10;&#10;Conseils :&#10;- Notez les points clés de discussion&#10;- Mentionnez les décisions prises&#10;- Listez les actions à effectuer&#10;- Incluez les échéances importantes"
                   value={currentNote.notes || ''}
                   onChange={(e) => setCurrentNote({...currentNote, notes: e.target.value})}
                   className="min-h-[300px] border-slate-300 focus:border-green-500 resize-none"
@@ -251,6 +259,31 @@ Généré le ${new Date().toLocaleString('fr-FR')}
 
           {/* Panneau latéral */}
           <div className="space-y-6">
+            {/* Extension Chrome info */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-t-lg">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Chrome className="w-5 h-5" />
+                  Extension Chrome
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                <div className="text-sm text-slate-700 space-y-2">
+                  <p><strong>Transcription Google Meet :</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Installez l'extension depuis le dossier <code className="bg-slate-100 px-1 rounded">public/extension</code></li>
+                    <li>Rejoignez une réunion Google Meet</li>
+                    <li>L'interface de transcription apparaîtra automatiquement</li>
+                    <li>Cliquez "Démarrer" pour commencer</li>
+                    <li>Exportez vers cette application</li>
+                  </ol>
+                </div>
+                <Badge variant="secondary" className="bg-amber-100 text-amber-800 w-full justify-center">
+                  Extension prête à installer
+                </Badge>
+              </CardContent>
+            </Card>
+
             {/* Actions rapides */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-t-lg">
@@ -274,13 +307,6 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                   <Download className="w-4 h-4 mr-2" />
                   Exporter le CR
                 </Button>
-                <Separator />
-                <div className="text-center">
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-800">
-                    <Chrome className="w-3 h-3 mr-1" />
-                    Extension Chrome bientôt disponible
-                  </Badge>
-                </div>
               </CardContent>
             </Card>
 
