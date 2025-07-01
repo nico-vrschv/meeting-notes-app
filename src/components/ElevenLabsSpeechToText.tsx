@@ -83,10 +83,10 @@ export const ElevenLabsSpeechToText: React.FC<ElevenLabsSpeechToTextProps> = ({
   const transcribeAudio = async (audioBlob: Blob) => {
     try {
       const formData = new FormData();
-      formData.append('audio', audioBlob, 'recording.webm');
+      formData.append('file', audioBlob, 'recording.webm');
       formData.append('model_id', 'eleven_multilingual_v2');
 
-      console.log('Envoi de la requête ElevenLabs avec model_id:', 'eleven_multilingual_v2');
+      console.log('Envoi de la requête ElevenLabs avec file et model_id:', 'eleven_multilingual_v2');
 
       const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
         method: 'POST',
