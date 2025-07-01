@@ -6,7 +6,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import SpeechTranscription from './SpeechTranscription';
 import { ElevenLabsSpeechToText } from './ElevenLabsSpeechToText';
 
 interface MeetingNote {
@@ -241,9 +240,6 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                 </div>
               </CardContent>
             </Card>
-
-            {/* Zone de transcription Web Speech API */}
-            <SpeechTranscription onTranscriptUpdate={handleTranscriptUpdate} />
 
             {/* Zone de transcription ElevenLabs */}
             <ElevenLabsSpeechToText onTranscriptUpdate={handleTranscriptUpdate} />
