@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users, Clock, FileText, Download, Mic, Chrome, Volume2 } from 'lucide-react';
+import { Calendar, Users, Clock, FileText, Download, Mic, Chrome } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import SpeechTranscription from './SpeechTranscription';
-import { ElevenLabsTTS } from './ElevenLabsTTS';
+import { ElevenLabsSpeechToText } from './ElevenLabsSpeechToText';
 
 interface MeetingNote {
   id: string;
@@ -34,7 +33,6 @@ const MeetingNotesApp = () => {
 
   const [participantInput, setParticipantInput] = useState('');
   const [actionItemInput, setActionItemInput] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
 
   // Vérifier s'il y a une transcription dans l'URL (venant de l'extension)
   useEffect(() => {
@@ -244,8 +242,11 @@ Généré le ${new Date().toLocaleString('fr-FR')}
               </CardContent>
             </Card>
 
-            {/* Zone de transcription en temps réel */}
+            {/* Zone de transcription Web Speech API */}
             <SpeechTranscription onTranscriptUpdate={handleTranscriptUpdate} />
+
+            {/* Zone de transcription ElevenLabs */}
+            <ElevenLabsSpeechToText onTranscriptUpdate={handleTranscriptUpdate} />
 
             {/* Zone de saisie des notes */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -253,9 +254,6 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="w-5 h-5" />
                   Notes de Réunion
-                  <div className="ml-auto">
-                    <ElevenLabsTTS text={currentNote.notes || ''} />
-                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
@@ -326,11 +324,8 @@ Généré le ${new Date().toLocaleString('fr-FR')}
             {currentNote.summary && (
               <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
                 <CardHeader className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-t-lg">
-                  <CardTitle className="text-lg flex items-center gap-2">
+                  <CardTitle className="text-lg">
                     Résumé Exécutif
-                    <div className="ml-auto">
-                      <ElevenLabsTTS text={currentNote.summary} />
-                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-4">
