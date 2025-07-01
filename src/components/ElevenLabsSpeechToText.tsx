@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Mic, MicOff, Loader2, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -85,7 +84,9 @@ export const ElevenLabsSpeechToText: React.FC<ElevenLabsSpeechToTextProps> = ({
     try {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
-      formData.append('model', 'eleven_multilingual_v2');
+      formData.append('model_id', 'eleven_multilingual_v2');
+
+      console.log('Envoi de la requête ElevenLabs avec model_id:', 'eleven_multilingual_v2');
 
       const response = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
         method: 'POST',
@@ -96,10 +97,13 @@ export const ElevenLabsSpeechToText: React.FC<ElevenLabsSpeechToTextProps> = ({
       });
 
       if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Erreur API ElevenLabs:', response.status, errorData);
         throw new Error(`Erreur API: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('Résultat ElevenLabs:', result);
       const newTranscript = result.text || '';
       
       if (newTranscript.trim()) {
