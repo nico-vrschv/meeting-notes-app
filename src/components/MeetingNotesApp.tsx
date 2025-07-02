@@ -114,7 +114,7 @@ const MeetingNotesApp = () => {
     if (!aiApiKey.trim()) {
       setCurrentNote(prev => ({
         ...prev,
-        summary: 'Veuillez saisir votre clé API OpenAI dans le panneau latéral.'
+        summary: 'Veuillez saisir votre clé API Gemini dans le panneau latéral.'
       }));
       return;
     }
@@ -161,22 +161,27 @@ Consignes :
 
 Réponds uniquement avec le compte rendu reformulé, sans préambule.`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${aiApiKey}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${aiApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
+          contents: [
             {
-              role: 'user',
-              content: prompt
+              parts: [
+                {
+                  text: prompt
+                }
+              ]
             }
           ],
-          temperature: 0.3,
-          max_tokens: 2000
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 2048,
+            topP: 0.9,
+            topK: 40
+          }
         }),
       });
 
@@ -186,7 +191,7 @@ Réponds uniquement avec le compte rendu reformulé, sans préambule.`;
       }
 
       const data = await response.json();
-      const aiSummary = data.choices[0]?.message?.content || 'Erreur lors de la génération du résumé.';
+      const aiSummary = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Erreur lors de la génération du résumé.';
 
       setCurrentNote(prev => ({
         ...prev,
@@ -408,11 +413,11 @@ Généré le ${new Date().toLocaleString('fr-FR')}
               <CardContent className="p-4 space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Clé API OpenAI
+                    Clé API Gemini
                   </label>
                   <Input
                     type="password"
-                    placeholder="sk-..."
+                    placeholder="AIza..."
                     value={aiApiKey}
                     onChange={(e) => setAiApiKey(e.target.value)}
                     className="text-sm border-slate-300 focus:border-orange-500"
