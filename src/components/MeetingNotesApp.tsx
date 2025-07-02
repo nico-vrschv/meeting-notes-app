@@ -101,13 +101,86 @@ const MeetingNotesApp = () => {
   const generateSummary = () => {
     const notes = currentNote.notes || '';
     
-    // Simulation de génération de résumé basique
-    const sentences = notes.split('.').filter(s => s.trim().length > 10);
-    const summary = sentences.slice(0, Math.min(3, sentences.length)).join('. ') + (sentences.length > 0 ? '.' : '');
+    if (!notes.trim()) {
+      setCurrentNote(prev => ({
+        ...prev,
+        summary: 'Aucun contenu suffisant pour générer un résumé.'
+      }));
+      return;
+    }
+
+    // Analyse et structuration professionnelle du contenu
+    const lines = notes.split('\n').filter(line => line.trim().length > 0);
+    const sentences = notes.split(/[.!?]+/).filter(s => s.trim().length > 15);
     
+    // Extraction des éléments clés
+    const keyPoints = [];
+    const decisions = [];
+    const discussions = [];
+    
+    lines.forEach(line => {
+      const trimmedLine = line.trim().toLowerCase();
+      if (trimmedLine.includes('décision') || trimmedLine.includes('décide') || trimmedLine.includes('convenu')) {
+        decisions.push(line.trim());
+      } else if (trimmedLine.includes('action') || trimmedLine.includes('faire') || trimmedLine.includes('tâche')) {
+        keyPoints.push(line.trim());
+      } else if (line.trim().length > 20) {
+        discussions.push(line.trim());
+      }
+    });
+
+    // Construction du résumé professionnel
+    let professionalSummary = '';
+    
+    // Introduction
+    professionalSummary += '**RÉSUMÉ EXÉCUTIF**\n\n';
+    
+    if (sentences.length > 0) {
+      const mainContext = sentences.slice(0, 2).join('. ').replace(/^\s*[•\-\*]\s*/, '');
+      professionalSummary += `Cette réunion a porté sur ${mainContext.toLowerCase()}.\n\n`;
+    }
+    
+    // Points principaux discutés
+    if (discussions.length > 0) {
+      professionalSummary += '**POINTS PRINCIPAUX ABORDÉS :**\n';
+      discussions.slice(0, 4).forEach((point, index) => {
+        const cleanPoint = point.replace(/^\s*[•\-\*]\s*/, '');
+        professionalSummary += `• ${cleanPoint}\n`;
+      });
+      professionalSummary += '\n';
+    }
+    
+    // Décisions prises
+    if (decisions.length > 0) {
+      professionalSummary += '**DÉCISIONS PRISES :**\n';
+      decisions.forEach((decision, index) => {
+        const cleanDecision = decision.replace(/^\s*[•\-\*]\s*/, '');
+        professionalSummary += `• ${cleanDecision}\n`;
+      });
+      professionalSummary += '\n';
+    }
+    
+    // Actions identifiées
+    if (currentNote.actionItems && currentNote.actionItems.length > 0) {
+      professionalSummary += '**ACTIONS À SUIVRE :**\n';
+      currentNote.actionItems.forEach((action, index) => {
+        professionalSummary += `• ${action}\n`;
+      });
+      professionalSummary += '\n';
+    }
+    
+    // Conclusion
+    if (sentences.length > 2) {
+      const conclusion = sentences.slice(-2).join('. ');
+      professionalSummary += '**PROCHAINES ÉTAPES :**\n';
+      professionalSummary += `Les prochaines actions se concentreront sur la mise en œuvre des décisions prises et le suivi des points évoqués.\n\n`;
+    }
+    
+    professionalSummary += `*Résumé généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}*`;
+
     setCurrentNote(prev => ({
       ...prev,
-      summary: summary || 'Aucun contenu suffisant pour générer un résumé.'
+      summary: professionalSummary
     }));
   };
 
