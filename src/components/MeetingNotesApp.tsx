@@ -32,6 +32,8 @@ const MeetingNotesApp = () => {
 
   const [participantInput, setParticipantInput] = useState('');
   const [actionItemInput, setActionItemInput] = useState('');
+  const [aiApiKey, setAiApiKey] = useState('');
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   // Vérifier s'il y a une transcription dans l'URL (venant de l'extension)
   useEffect(() => {
@@ -98,7 +100,7 @@ const MeetingNotesApp = () => {
     }));
   };
 
-  const generateSummary = () => {
+  const generateSummary = async () => {
     const notes = currentNote.notes || '';
     
     if (!notes.trim()) {
@@ -109,79 +111,97 @@ const MeetingNotesApp = () => {
       return;
     }
 
-    // Analyse et structuration professionnelle du contenu
-    const lines = notes.split('\n').filter(line => line.trim().length > 0);
-    const sentences = notes.split(/[.!?]+/).filter(s => s.trim().length > 15);
-    
-    // Extraction des éléments clés
-    const keyPoints = [];
-    const decisions = [];
-    const discussions = [];
-    
-    lines.forEach(line => {
-      const trimmedLine = line.trim().toLowerCase();
-      if (trimmedLine.includes('décision') || trimmedLine.includes('décide') || trimmedLine.includes('convenu')) {
-        decisions.push(line.trim());
-      } else if (trimmedLine.includes('action') || trimmedLine.includes('faire') || trimmedLine.includes('tâche')) {
-        keyPoints.push(line.trim());
-      } else if (line.trim().length > 20) {
-        discussions.push(line.trim());
+    if (!aiApiKey.trim()) {
+      setCurrentNote(prev => ({
+        ...prev,
+        summary: 'Veuillez saisir votre clé API OpenAI dans le panneau latéral.'
+      }));
+      return;
+    }
+
+    setIsGeneratingSummary(true);
+
+    try {
+      const meetingContext = {
+        title: currentNote.title || 'Réunion',
+        date: currentNote.date,
+        participants: currentNote.participants?.join(', ') || 'Non spécifiés',
+        duration: currentNote.duration || 'Non spécifiée',
+        actionItems: currentNote.actionItems || []
+      };
+
+      const prompt = `Tu es un assistant professionnel chargé de rédiger des comptes rendus de réunion formels. 
+
+Contexte de la réunion :
+- Titre : ${meetingContext.title}
+- Date : ${meetingContext.date}
+- Participants : ${meetingContext.participants}
+- Durée : ${meetingContext.duration}
+- Actions identifiées : ${meetingContext.actionItems.join('; ')}
+
+Notes brutes de la réunion :
+"""
+${notes}
+"""
+
+Consignes :
+1. Reformule ces notes en un compte rendu professionnel et formel
+2. Structure le contenu avec les sections suivantes :
+   - CONTEXTE ET OBJECTIF
+   - POINTS PRINCIPAUX ABORDÉS
+   - DÉCISIONS PRISES
+   - ACTIONS À SUIVRE (inclure les actions déjà listées + celles identifiées dans les notes)
+   - PROCHAINES ÉTAPES
+
+3. Utilise un langage soutenu et professionnel
+4. Assure-toi que le contenu soit clair, structuré et exploitable
+5. Corrige les éventuelles erreurs de transcription
+6. Synthétise les informations redondantes
+7. Mets en valeur les éléments importants
+
+Réponds uniquement avec le compte rendu reformulé, sans préambule.`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${aiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 2000
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `Erreur API: ${response.status}`);
       }
-    });
 
-    // Construction du résumé professionnel
-    let professionalSummary = '';
-    
-    // Introduction
-    professionalSummary += '**RÉSUMÉ EXÉCUTIF**\n\n';
-    
-    if (sentences.length > 0) {
-      const mainContext = sentences.slice(0, 2).join('. ').replace(/^\s*[•\-\*]\s*/, '');
-      professionalSummary += `Cette réunion a porté sur ${mainContext.toLowerCase()}.\n\n`;
-    }
-    
-    // Points principaux discutés
-    if (discussions.length > 0) {
-      professionalSummary += '**POINTS PRINCIPAUX ABORDÉS :**\n';
-      discussions.slice(0, 4).forEach((point, index) => {
-        const cleanPoint = point.replace(/^\s*[•\-\*]\s*/, '');
-        professionalSummary += `• ${cleanPoint}\n`;
-      });
-      professionalSummary += '\n';
-    }
-    
-    // Décisions prises
-    if (decisions.length > 0) {
-      professionalSummary += '**DÉCISIONS PRISES :**\n';
-      decisions.forEach((decision, index) => {
-        const cleanDecision = decision.replace(/^\s*[•\-\*]\s*/, '');
-        professionalSummary += `• ${cleanDecision}\n`;
-      });
-      professionalSummary += '\n';
-    }
-    
-    // Actions identifiées
-    if (currentNote.actionItems && currentNote.actionItems.length > 0) {
-      professionalSummary += '**ACTIONS À SUIVRE :**\n';
-      currentNote.actionItems.forEach((action, index) => {
-        professionalSummary += `• ${action}\n`;
-      });
-      professionalSummary += '\n';
-    }
-    
-    // Conclusion
-    if (sentences.length > 2) {
-      const conclusion = sentences.slice(-2).join('. ');
-      professionalSummary += '**PROCHAINES ÉTAPES :**\n';
-      professionalSummary += `Les prochaines actions se concentreront sur la mise en œuvre des décisions prises et le suivi des points évoqués.\n\n`;
-    }
-    
-    professionalSummary += `*Résumé généré automatiquement le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}*`;
+      const data = await response.json();
+      const aiSummary = data.choices[0]?.message?.content || 'Erreur lors de la génération du résumé.';
 
-    setCurrentNote(prev => ({
-      ...prev,
-      summary: professionalSummary
-    }));
+      setCurrentNote(prev => ({
+        ...prev,
+        summary: aiSummary + `\n\n*Résumé généré par IA le ${new Date().toLocaleDateString('fr-FR')} à ${new Date().toLocaleTimeString('fr-FR')}*`
+      }));
+
+    } catch (error) {
+      console.error('Erreur lors de la génération du résumé:', error);
+      setCurrentNote(prev => ({
+        ...prev,
+        summary: `Erreur lors de la génération du résumé: ${error instanceof Error ? error.message : 'Erreur inconnue'}\n\nVérifiez votre clé API et votre connexion internet.`
+      }));
+    } finally {
+      setIsGeneratingSummary(false);
+    }
   };
 
   const exportReport = () => {
@@ -380,6 +400,30 @@ Généré le ${new Date().toLocaleString('fr-FR')}
 
           {/* Panneau latéral */}
           <div className="space-y-6">
+            {/* Configuration IA */}
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+              <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-t-lg">
+                <CardTitle className="text-lg">Configuration IA</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Clé API OpenAI
+                  </label>
+                  <Input
+                    type="password"
+                    placeholder="sk-..."
+                    value={aiApiKey}
+                    onChange={(e) => setAiApiKey(e.target.value)}
+                    className="text-sm border-slate-300 focus:border-orange-500"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Nécessaire pour la reformulation IA du résumé
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Actions rapides */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-t-lg">
@@ -389,10 +433,10 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                 <Button 
                   onClick={generateSummary} 
                   className="w-full bg-purple-600 hover:bg-purple-700"
-                  disabled={!currentNote.notes?.trim()}
+                  disabled={!currentNote.notes?.trim() || isGeneratingSummary}
                 >
                   <FileText className="w-4 h-4 mr-2" />
-                  Générer le Résumé
+                  {isGeneratingSummary ? 'Génération...' : 'Générer le Résumé IA'}
                 </Button>
                 <Button 
                   onClick={exportReport} 
