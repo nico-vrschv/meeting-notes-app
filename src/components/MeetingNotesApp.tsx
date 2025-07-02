@@ -419,7 +419,10 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                     type="password"
                     placeholder="AIza..."
                     value={aiApiKey}
-                    onChange={(e) => setAiApiKey(e.target.value)}
+                    onChange={(e) => {
+                      console.log('Tentative de saisie clé API:', e.target.value);
+                      setAiApiKey(e.target.value);
+                    }}
                     className="text-sm border-slate-300 focus:border-orange-500"
                   />
                   <p className="text-xs text-slate-500 mt-1">
