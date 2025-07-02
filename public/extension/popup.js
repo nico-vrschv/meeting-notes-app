@@ -3,15 +3,22 @@
 document.addEventListener('DOMContentLoaded', function() {
   const openAppBtn = document.getElementById('openApp');
   const exportBtn = document.getElementById('exportTranscript');
+  const closeBtn = document.getElementById('closePopup');
   const statusEl = document.getElementById('status');
   const transcriptPreview = document.getElementById('transcriptPreview');
   const transcriptText = document.getElementById('transcriptText');
+
+  // Fermer la popup
+  closeBtn.addEventListener('click', function() {
+    window.close();
+  });
 
   // Ouvrir l'application principale
   openAppBtn.addEventListener('click', function() {
     chrome.tabs.create({
       url: 'http://localhost:8080'
     });
+    window.close();
   });
 
   // Exporter la transcription

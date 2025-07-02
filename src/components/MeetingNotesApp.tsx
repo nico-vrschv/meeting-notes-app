@@ -252,44 +252,61 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                   Notes de Réunion
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent className="p-6 space-y-4">
                 <Textarea
                   placeholder="Saisissez vos notes ici ou utilisez la transcription automatique ci-dessus...&#10;&#10;Conseils :&#10;- Notez les points clés de discussion&#10;- Mentionnez les décisions prises&#10;- Listez les actions à effectuer&#10;- Incluez les échéances importantes"
                   value={currentNote.notes || ''}
                   onChange={(e) => handleNotesChange(e.target.value)}
                   className="min-h-[300px] border-slate-300 focus:border-green-500 resize-none"
                 />
+                
+                {/* Actions à effectuer intégrées */}
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-slate-700 mb-3 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Actions à Effectuer
+                  </h4>
+                  <div className="flex gap-2 mb-3">
+                    <Input
+                      placeholder="Nouvelle action..."
+                      value={actionItemInput}
+                      onChange={(e) => setActionItemInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addActionItem()}
+                      className="text-sm border-slate-300 focus:border-green-500"
+                    />
+                    <Button 
+                      onClick={addActionItem} 
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {currentNote.actionItems?.map((item, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-center gap-2 p-2 bg-green-50 rounded-lg border border-green-200"
+                      >
+                        <span className="text-sm text-slate-700 flex-1">{item}</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => removeActionItem(index)}
+                          className="text-green-600 hover:text-green-800 hover:bg-green-100 h-6 w-6 p-0"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
 
           {/* Panneau latéral */}
           <div className="space-y-6">
-            {/* Extension Chrome info */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-t-lg">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Chrome className="w-5 h-5" />
-                  Extension Chrome
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3">
-                <div className="text-sm text-slate-700 space-y-2">
-                  <p><strong>Transcription Google Meet :</strong></p>
-                  <ol className="list-decimal list-inside space-y-1 text-xs">
-                    <li>Installez l'extension depuis le dossier <code className="bg-slate-100 px-1 rounded">public/extension</code></li>
-                    <li>Rejoignez une réunion Google Meet</li>
-                    <li>L'interface de transcription apparaîtra automatiquement</li>
-                    <li>Cliquez "Démarrer" pour commencer</li>
-                    <li>Exportez vers cette application</li>
-                  </ol>
-                </div>
-                <Badge variant="secondary" className="bg-amber-100 text-amber-800 w-full justify-center">
-                  Extension prête à installer
-                </Badge>
-              </CardContent>
-            </Card>
-
             {/* Actions rapides */}
             <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-t-lg">
@@ -332,48 +349,6 @@ Généré le ${new Date().toLocaleString('fr-FR')}
               </Card>
             )}
 
-            {/* Actions à effectuer */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-orange-600 to-orange-700 text-white rounded-t-lg">
-                <CardTitle className="text-lg">Actions à Effectuer</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 space-y-3">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Nouvelle action..."
-                    value={actionItemInput}
-                    onChange={(e) => setActionItemInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addActionItem()}
-                    className="text-sm border-orange-300 focus:border-orange-500"
-                  />
-                  <Button 
-                    onClick={addActionItem} 
-                    size="sm"
-                    className="bg-orange-600 hover:bg-orange-700"
-                  >
-                    +
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {currentNote.actionItems?.map((item, index) => (
-                    <div 
-                      key={index}
-                      className="flex items-center gap-2 p-2 bg-orange-50 rounded-lg border border-orange-200"
-                    >
-                      <span className="text-sm text-slate-700 flex-1">{item}</span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => removeActionItem(index)}
-                        className="text-orange-600 hover:text-orange-800 hover:bg-orange-100 h-6 w-6 p-0"
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

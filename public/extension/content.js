@@ -198,7 +198,7 @@ function updateUIState() {
 function exportToApp() {
   if (transcript) {
     // Ouvrir l'application avec la transcription
-    const appUrl = `${window.location.origin.replace('meet.google.com', 'localhost:8080')}?transcript=${encodeURIComponent(transcript)}`;
+    const appUrl = `http://localhost:8080?transcript=${encodeURIComponent(transcript)}`;
     window.open(appUrl, '_blank');
   }
 }
