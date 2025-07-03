@@ -415,16 +415,29 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     Clé API Gemini
                   </label>
-                  <Input
-                    type="password"
-                    placeholder="AIza..."
-                    value={aiApiKey}
-                    onChange={(e) => {
-                      console.log('Tentative de saisie clé API:', e.target.value);
-                      setAiApiKey(e.target.value);
-                    }}
-                    className="text-sm border-slate-300 focus:border-orange-500"
-                  />
+                  <div className="space-y-2">
+                    <Input
+                      type="password"
+                      placeholder="AIza..."
+                      value={aiApiKey}
+                      onChange={(e) => {
+                        console.log('Tentative de saisie clé API:', e.target.value);
+                        setAiApiKey(e.target.value);
+                      }}
+                      className="text-sm border-slate-300 focus:border-orange-500"
+                    />
+                    <Button 
+                      onClick={() => {
+                        localStorage.setItem('gemini-api-key', aiApiKey);
+                        console.log('Clé API sauvegardée:', aiApiKey);
+                      }}
+                      size="sm"
+                      className="w-full bg-orange-600 hover:bg-orange-700"
+                      disabled={!aiApiKey.trim()}
+                    >
+                      Enregistrer la clé
+                    </Button>
+                  </div>
                   <p className="text-xs text-slate-500 mt-1">
                     Nécessaire pour la reformulation IA du résumé
                   </p>
