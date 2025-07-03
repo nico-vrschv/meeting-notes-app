@@ -96,17 +96,30 @@ function createMeetUI() {
       <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">
         📝 Transcription
       </h3>
-      <button id="toggle-transcription" style="
-        background: #4285f4;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        padding: 6px 12px;
-        font-size: 12px;
-        cursor: pointer;
-      ">
-        Démarrer
-      </button>
+      <div style="display: flex; gap: 4px;">
+        <button id="minimize-ui" style="
+          background: #666;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 6px 8px;
+          font-size: 12px;
+          cursor: pointer;
+        ">
+          −
+        </button>
+        <button id="toggle-transcription" style="
+          background: #4285f4;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 6px 12px;
+          font-size: 12px;
+          cursor: pointer;
+        ">
+          Démarrer
+        </button>
+      </div>
     </div>
     <div id="transcription-status" style="
       font-size: 12px;
@@ -147,9 +160,11 @@ function createMeetUI() {
   // Gestionnaires d'événements
   const toggleBtn = document.getElementById('toggle-transcription');
   const exportBtn = document.getElementById('export-transcript');
+  const minimizeBtn = document.getElementById('minimize-ui');
 
   toggleBtn.addEventListener('click', toggleTranscription);
   exportBtn.addEventListener('click', exportToApp);
+  minimizeBtn.addEventListener('click', minimizeUI);
 
   updateUIState();
 }
@@ -191,6 +206,31 @@ function updateUIState() {
   if (transcriptEl && transcript) {
     transcriptEl.textContent = transcript || 'La transcription apparaîtra ici...';
     transcriptEl.scrollTop = transcriptEl.scrollHeight;
+  }
+}
+
+// Minimiser/maximiser l'interface
+function minimizeUI() {
+  const ui = document.getElementById('meeting-transcription-ui');
+  const minimizeBtn = document.getElementById('minimize-ui');
+  const content = ui.querySelector('div:nth-child(2)');
+  const transcript = ui.querySelector('#live-transcript');
+  const exportBtn = ui.querySelector('#export-transcript');
+  
+  if (content.style.display === 'none') {
+    // Restaurer
+    content.style.display = 'block';
+    transcript.style.display = 'block';
+    exportBtn.style.display = 'block';
+    minimizeBtn.textContent = '−';
+    ui.style.minWidth = '280px';
+  } else {
+    // Minimiser
+    content.style.display = 'none';
+    transcript.style.display = 'none';
+    exportBtn.style.display = 'none';
+    minimizeBtn.textContent = '+';
+    ui.style.minWidth = 'auto';
   }
 }
 
