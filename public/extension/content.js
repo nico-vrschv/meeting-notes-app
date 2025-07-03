@@ -108,6 +108,17 @@ function createMeetUI() {
         ">
           −
         </button>
+        <button id="close-ui" style="
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          padding: 6px 8px;
+          font-size: 12px;
+          cursor: pointer;
+        ">
+          ×
+        </button>
         <button id="toggle-transcription" style="
           background: #4285f4;
           color: white;
@@ -161,10 +172,12 @@ function createMeetUI() {
   const toggleBtn = document.getElementById('toggle-transcription');
   const exportBtn = document.getElementById('export-transcript');
   const minimizeBtn = document.getElementById('minimize-ui');
+  const closeBtn = document.getElementById('close-ui');
 
   toggleBtn.addEventListener('click', toggleTranscription);
   exportBtn.addEventListener('click', exportToApp);
   minimizeBtn.addEventListener('click', minimizeUI);
+  closeBtn.addEventListener('click', closeUI);
 
   updateUIState();
 }
@@ -213,24 +226,38 @@ function updateUIState() {
 function minimizeUI() {
   const ui = document.getElementById('meeting-transcription-ui');
   const minimizeBtn = document.getElementById('minimize-ui');
-  const content = ui.querySelector('div:nth-child(2)');
-  const transcript = ui.querySelector('#live-transcript');
-  const exportBtn = ui.querySelector('#export-transcript');
+  const statusEl = document.getElementById('transcription-status');
+  const transcriptEl = document.getElementById('live-transcript');
+  const exportBtn = document.getElementById('export-transcript');
   
-  if (content.style.display === 'none') {
+  if (statusEl.style.display === 'none') {
     // Restaurer
-    content.style.display = 'block';
-    transcript.style.display = 'block';
+    statusEl.style.display = 'block';
+    transcriptEl.style.display = 'block';
     exportBtn.style.display = 'block';
     minimizeBtn.textContent = '−';
     ui.style.minWidth = '280px';
   } else {
     // Minimiser
-    content.style.display = 'none';
-    transcript.style.display = 'none';
+    statusEl.style.display = 'none';
+    transcriptEl.style.display = 'none';
     exportBtn.style.display = 'none';
     minimizeBtn.textContent = '+';
     ui.style.minWidth = 'auto';
+  }
+}
+
+// Fermer complètement l'interface
+function closeUI() {
+  const ui = document.getElementById('meeting-transcription-ui');
+  if (ui) {
+    // Arrêter la transcription si elle est active
+    if (isTranscribing && recognition) {
+      recognition.stop();
+      isTranscribing = false;
+    }
+    // Supprimer l'interface
+    ui.remove();
   }
 }
 
