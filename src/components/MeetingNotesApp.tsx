@@ -161,7 +161,7 @@ Consignes :
 
 Réponds uniquement avec le compte rendu reformulé, sans préambule.`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${aiApiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${aiApiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
