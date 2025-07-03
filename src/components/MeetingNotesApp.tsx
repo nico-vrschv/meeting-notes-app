@@ -35,6 +35,14 @@ const MeetingNotesApp = () => {
   const [aiApiKey, setAiApiKey] = useState('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
+  // Charger la clé API depuis localStorage au démarrage
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('gemini-api-key');
+    if (savedApiKey) {
+      setAiApiKey(savedApiKey);
+    }
+  }, []);
+
   // Vérifier s'il y a une transcription dans l'URL (venant de l'extension)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -357,48 +365,6 @@ Généré le ${new Date().toLocaleString('fr-FR')}
                   onChange={(e) => handleNotesChange(e.target.value)}
                   className="min-h-[300px] border-slate-300 focus:border-green-500 resize-none"
                 />
-                
-                {/* Actions à effectuer intégrées */}
-                <div className="border-t pt-4">
-                  <h4 className="font-medium text-slate-700 mb-3 flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Actions à Effectuer
-                  </h4>
-                  <div className="flex gap-2 mb-3">
-                    <Input
-                      placeholder="Nouvelle action..."
-                      value={actionItemInput}
-                      onChange={(e) => setActionItemInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && addActionItem()}
-                      className="text-sm border-slate-300 focus:border-green-500"
-                    />
-                    <Button 
-                      onClick={addActionItem} 
-                      size="sm"
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      +
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    {currentNote.actionItems?.map((item, index) => (
-                      <div 
-                        key={index}
-                        className="flex items-center gap-2 p-2 bg-green-50 rounded-lg border border-green-200"
-                      >
-                        <span className="text-sm text-slate-700 flex-1">{item}</span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => removeActionItem(index)}
-                          className="text-green-600 hover:text-green-800 hover:bg-green-100 h-6 w-6 p-0"
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
